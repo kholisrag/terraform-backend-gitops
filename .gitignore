@@ -19,3 +19,16 @@
 
 # Go workspace file
 go.work
+
+# go releaser build output
+dist/
+# config related files
+**/.terraform-backend-gitops.yaml
+**/otel-collector-config.yaml
+
+# temporary directory
+temp/
+
+# temporary files for clean changelog for github release
+clean_changelog.md
+__debug_bin*

@@ -1,0 +1,91 @@
+name: Release Candidate
+
+on:
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  rc:
+    name: Release Candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-tags: true
+          fetch-depth: 0
+          ref: "${{ github.event.inputs.tag }}"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Log in to GitHub Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+
+      - name: Conventional Changelog Action (act)
+        if: ${{ env.ACT }}
+        id: changelog-local
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.PAT }}
+          release-count: "0"
+          version-file: "./version.json"
+          version-path: "version"
+          preset: "angular"
+          git-branch: "${{ github.ref_name }}"
+          pre-release: true
+          pre-release-identifier: "${{ github.ref_name }}-rc"
+          create-summary: true
+          skip-commit: true
+          skip-bump: true
+          skip-tag: true
+          skip-git-pull: true
+
+      - name: Conventional Changelog Action
+        if: ${{ !env.ACT }}
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.PAT }}
+          release-count: "0"
+          version-file: "./version.json"
+          version-path: "version"
+          preset: "angular"
+          git-branch: "${{ github.ref_name }}"
+          pre-release: true
+          pre-release-identifier: "${{ github.ref_name }}-rc"
+          create-summary: true
+
+      - name: Run GoReleaser (act)
+        if: ${{ (steps.changelog-local.outputs.clean_changelog != '') && env.ACT }}
+        id: goreleaser-local
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Run GoReleaser
+        if: ${{ (steps.changelog.outputs.clean_changelog != '') && !env.ACT }}
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}

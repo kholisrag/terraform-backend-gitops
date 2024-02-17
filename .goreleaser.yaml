@@ -1,0 +1,146 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 1
+project_name: terraform-backend-gitops
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: release
+    main: cmd/terraform-backend-gitops/main.go
+    binary: terraform-backend-gitops
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+      - "8"
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_{{ .Tag }}
+      {{- title .Os | tolower }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+
+dockers:
+  - id: terraform-backend-gitops-release-amd64
+    use: buildx
+    dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.url=https://github.com/kholisrag/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.licenses=AGPLv3"
+  - id: terraform-backend-gitops-release-arm64
+    use: buildx
+    dockerfile: Dockerfile
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.url=https://github.com/kholisrag/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.licenses=AGPLv3"
+
+docker_manifests:
+  - name_template: "ghcr.io/kholisrag/{{.ProjectName}}:{{.Version}}"
+    image_templates:
+      - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
+  - name_template: "ghcr.io/kholisrag/{{.ProjectName}}:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
+  - name_template: "ghcr.io/kholisrag/{{.ProjectName}}:latest"
+    image_templates:
+      - "ghcr.io/kholisrag/{{.ProjectName}}:latest-amd64"
+      - "ghcr.io/kholisrag/{{.ProjectName}}:latest-arm64"
+
+changelog:
+  disable: false
+  use: git
+  abbrev: 0
+  sort: asc
+  filters:
+    exclude:
+      - "^.github:"
+      - "^Merge branch.*"
+  groups:
+    - title: "Breaking Changes"
+      regexp: '^(BREAKING CHANGE:|[Ff]eat\!:)\s+(.*)$'
+      order: 0
+    - title: "Features"
+      regexp: '^.*?(feat|perf)(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: "Refactor"
+      regexp: '^.*?(refactor|revamp)(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: "Miscellaneous"
+      regexp: '^.*?(chore|docs|ci)(\([[:word:]]+\))??!?:.+$'
+      order: 4
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Tag }}_checksums.txt"
+  algorithm: sha512
+
+release:
+  prerelease: auto
+  mode: replace
+  github:
+    owner: kholisrag
+    name: terraform-backend-gitops
+  footer: |
+    ## Docker images
+
+    To pull the image, you can execute the following command:
+    ```bash
+    docker pull ghcr.io/kholisrag/{{.ProjectName}}:{{ .Tag }}
+    ```

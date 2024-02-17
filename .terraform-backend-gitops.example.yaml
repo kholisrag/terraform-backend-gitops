@@ -1,0 +1,13 @@
+logLevel: "INFO"
+repo:
+  local:
+    path: "/Users/petrukngantuk/go/src/github.com/kholisrag/platypus-tfstate"
+server:
+  mode: "release"
+  address: "0.0.0.0:20002"
+tracing:
+  enabled: true
+  sampleRate: 0.2
+  provider: "otlptracegrpc"
+  otlp:
+    endpoint: "0.0.0.0:4317"

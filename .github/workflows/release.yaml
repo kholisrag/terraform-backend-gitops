@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-tags: true
+          fetch-depth: 0
+          ref: "main"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Log in to GitHub Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+
+      - name: Conventional Changelog Action (act)
+        if: ${{ env.ACT }}
+        id: changelog-local
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.PAT }}
+          release-count: "0"
+          version-file: "./version.json"
+          version-path: "version"
+          preset: "angular"
+          git-branch: "main"
+          pre-release: false
+          create-summary: true
+          skip-commit: true
+          skip-bump: true
+          skip-tag: true
+          skip-git-pull: true
+          skip-on-empty: false
+
+      - name: Conventional Changelog Action
+        if: ${{ !env.ACT }}
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.PAT }}
+          release-count: "0"
+          version-file: "./version.json"
+          version-path: "version"
+          preset: "angular"
+          git-branch: "main"
+          pre-release: false
+          create-summary: true
+          skip-commit: false
+          skip-bump: false
+          skip-tag: false
+          skip-git-pull: false
+          skip-on-empty: true
+
+      - name: Run GoReleaser (act)
+        if: ${{ ((steps.changelog-local.outputs.clean_changelog != '') && env.ACT) }}
+        id: goreleaser-local
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Run GoReleaser
+        if: ${{ ((steps.changelog.outputs.clean_changelog != '') && !env.ACT) }}
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Delete Old Release Candidate Release
+        if: ${{ steps.goreleaser.outputs.metadata != '' }}
+        id: delete-rc-release
+        uses: dev-drprasad/delete-older-releases@v0.3.2
+        with:
+          repo: ${{ github.repository }}
+          keep_latest: 0
+          keep_min_download_counts: 1
+          delete_prerelease_only: true
+          delete_tag_pattern: '^v.*rc.*$'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Delete Old Release Candidate Package
+        if: ${{ steps.goreleaser.outputs.metadata != '' }}
+        id: delete-rc-package
+        uses: snok/container-retention-policy@v2
+        with:
+          token: ${{ secrets.PAT }}
+          account-type: personal
+          cut-off: A day ago UTC+7
+          image-names: "terraform-backend-gitops:v.*-rc.*"
+          keep-at-least: 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
