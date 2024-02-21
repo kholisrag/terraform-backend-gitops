@@ -1,0 +1,18 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+  pull_request_review:
+
+jobs:
+  conventional-commits-check:
+    name: Check Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: taskmedia/action-conventional-commits@v1
+        with:
+          token: ${{ secrets.PAT }}
+          skip_merge: "true"
+          skip_revert: "true"
+          types: "fix|feat|revert|ci|chore|docs|style|refactor|perf|test"
