@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/kholisrag/terraform-backend-gitops/pkg/command"
+	"github.com/kholisrag/terraform-backend-gitops/pkg/logger"
+	"go.uber.org/zap"
 )
 
 var (
@@ -11,5 +13,8 @@ var (
 )
 
 func main() {
-	command.Execute(version, commit, build)
+	err := command.Execute(version, commit, build)
+	if err != nil {
+		logger.Fatal("failed to start", zap.Error(err))
+	}
 }

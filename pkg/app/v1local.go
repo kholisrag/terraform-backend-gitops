@@ -33,6 +33,7 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 		stateData, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			logger.Error("failed to read request body", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(400, err)
 		}
 
@@ -40,6 +41,7 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 		err = json.Unmarshal(stateData, &data)
 		if err != nil {
 			logger.Error("failed to unmarshal request body", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(400, err)
 		}
 
@@ -51,11 +53,13 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 		err = os.MkdirAll(dirPath, 0750)
 		if err != nil {
 			logger.Error("failed to create state directory", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(500, err)
 		}
 		stateFile, err := os.Create(statePath)
 		if err != nil {
 			logger.Error("failed to create state file", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(500, err)
 		}
 		defer stateFile.Close()
@@ -63,10 +67,12 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 		err = encryptions.AgeEncrypt(config.Encryptions.Age.Recipient, string(stateData), stateFile)
 		if err != nil {
 			logger.Error("failed to write encrypted state file", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(500, err)
 		}
 		if err != nil {
 			logger.Error("failed to write state file", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(500, err)
 		}
 
@@ -85,6 +91,7 @@ func ginGetHandler(config *config.Config) gin.HandlerFunc {
 		defer c.Request.Body.Close()
 		if err != nil {
 			logger.Error("failed to read request body", zap.Error(err))
+			//nolint:errcheck
 			c.AbortWithError(400, err)
 		}
 		logger.Debugf("requestbody: %s", body)
@@ -106,6 +113,7 @@ func ginGetHandler(config *config.Config) gin.HandlerFunc {
 					c.AbortWithStatusJSON(404, err)
 				} else {
 					logger.Error("failed to decrypt file", zap.Error(err))
+					//nolint:errcheck
 					c.AbortWithError(500, err)
 					return
 				}

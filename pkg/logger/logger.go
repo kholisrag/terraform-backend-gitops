@@ -13,6 +13,7 @@ var log *zap.Logger
 func init() {
 	var err error
 	log, _ = zap.NewProduction()
+	//nolint:errcheck
 	defer log.Sync()
 
 	config := zap.NewProductionConfig()

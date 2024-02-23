@@ -16,6 +16,7 @@ var (
 			Konfig.Build.BuildTime = buildTime
 
 			s := app.NewApp(&Konfig)
+			//nolint:errcheck
 			s.Run(Konfig.Server.Address)
 		},
 	}
