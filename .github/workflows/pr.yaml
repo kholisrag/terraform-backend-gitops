@@ -16,3 +16,16 @@ jobs:
           skip_merge: "true"
           skip_revert: "true"
           types: "fix|feat|revert|ci|chore|docs|style|refactor|perf|test"
+
+      - name: Run GoReleaser Build
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: build --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Run Go Test
+        uses: robherley/go-test-action@v0.1.0
