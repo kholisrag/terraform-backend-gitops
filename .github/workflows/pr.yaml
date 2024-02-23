@@ -9,7 +9,7 @@ jobs:
     name: Check Conventional Commits
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check Conventional Commits
         uses: taskmedia/action-conventional-commits@v1
         with:
           token: ${{ secrets.PAT }}
