@@ -8,13 +8,10 @@ import (
 
 	"github.com/go-playground/assert/v2"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/config"
-	"go.uber.org/zap"
 )
 
 func TestNewAppHealthz(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-
-	router := NewApp(logger, config.NewDefaultConfig())
+	router := NewApp(config.NewDefaultConfig())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/healthz", nil)
@@ -25,9 +22,7 @@ func TestNewAppHealthz(t *testing.T) {
 }
 
 func TestNewAppVersion(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-
-	router := NewApp(logger, config.NewDefaultConfig())
+	router := NewApp(config.NewDefaultConfig())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/version", nil)

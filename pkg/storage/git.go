@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
 	"go.uber.org/zap"
@@ -63,20 +62,4 @@ func getGitRepoRoot(path string) (root string, err error) {
 	}
 
 	return worktree.Filesystem.Root(), nil
-}
-
-func (g *Git) WriteStateFile(file string, content []byte) error {
-	// Create the directory if it does not exist using filepath
-	dir := filepath.Dir(fmt.Sprintf("%s/%s", g.Root, file))
-	err := os.MkdirAll(dir, os.FileMode(0644))
-	if err != nil {
-		return fmt.Errorf("failed to create directory %v: %v", dir, err)
-	}
-
-	err = os.WriteFile(fmt.Sprintf("%s/%s", g.Root, file), content, 0640)
-	if err != nil {
-		return fmt.Errorf("failed to write state file: %v", err)
-	}
-
-	return nil
 }

@@ -1,11 +1,12 @@
 package config
 
 type Config struct {
-	LogLevel string  `koanf:"logLevel" default:"info"`
-	Repo     Repo    `koanf:"repo"`
-	Server   Server  `koanf:"server"`
-	Build    Build   `koanf:"build"`
-	Tracing  Tracing `koanf:"tracing"`
+	LogLevel    string      `koanf:"logLevel" default:"info"`
+	Repo        Repo        `koanf:"repo"`
+	Server      Server      `koanf:"server"`
+	Build       Build       `koanf:"build"`
+	Tracing     Tracing     `koanf:"tracing"`
+	Encryptions Encryptions `koanf:"encryptions"`
 }
 
 type Repo struct {
@@ -37,6 +38,16 @@ type Tracing struct {
 
 type OTLP struct {
 	Endpoint string `koanf:"endpoint" default:"0.0.0.0:4317"`
+}
+
+type Encryptions struct {
+	Mode string `koanf:"mode" default:"age"`
+	Age  Age    `koanf:"age"`
+}
+
+type Age struct {
+	Recipient         string `koanf:"recipient" default:""`
+	AgePrivateKeyPath string `koanf:"keys" default:""`
 }
 
 func NewDefaultConfig() *Config {

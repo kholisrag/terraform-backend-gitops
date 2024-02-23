@@ -15,7 +15,7 @@ var (
 			Konfig.Build.CommitHash = commit
 			Konfig.Build.BuildTime = buildTime
 
-			s := app.NewApp(Logger, &Konfig)
+			s := app.NewApp(&Konfig)
 			s.Run(Konfig.Server.Address)
 		},
 	}
