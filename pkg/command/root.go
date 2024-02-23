@@ -48,7 +48,11 @@ func initConfig() {
 	if err := k.Load(file.Provider(cfgPath), yaml.Parser()); err != nil {
 		logger.Warnf("error loading the configuration: %v", err)
 	}
-	k.Unmarshal("", &Konfig)
+
+	err := k.Unmarshal("", &Konfig)
+	if err != nil {
+		logger.Fatalf("error unmarshalling the configuration: %v", err)
+	}
 
 	logger.Init(Konfig.LogLevel)
 	// Pretty Print the configuration
