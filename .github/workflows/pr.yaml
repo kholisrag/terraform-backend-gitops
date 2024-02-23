@@ -50,3 +50,6 @@ jobs:
         with:
           install-mode: binary
           version: latest
+          skip-build-cache: true
+          skip-pkg-cache: true
+          skip-cache: true
