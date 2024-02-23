@@ -4,6 +4,9 @@ on:
   pull_request:
   pull_request_review:
 
+permissions:
+  contents: read
+
 jobs:
   conventional-commits-check:
     name: Check Conventional Commits
@@ -12,10 +15,15 @@ jobs:
       - name: Check Conventional Commits
         uses: taskmedia/action-conventional-commits@v1
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           skip_merge: "true"
           skip_revert: "true"
           types: "fix|feat|revert|ci|chore|docs|style|refactor|perf|test"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run GoReleaser Build
         id: goreleaser
