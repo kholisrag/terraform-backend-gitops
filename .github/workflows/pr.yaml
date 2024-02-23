@@ -33,7 +33,7 @@ jobs:
           version: latest
           args: build --snapshot --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Go Test
         uses: robherley/go-test-action@v0.1.0
