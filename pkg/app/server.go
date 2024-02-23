@@ -8,6 +8,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/config"
+	"github.com/kholisrag/terraform-backend-gitops/pkg/logger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -24,7 +25,7 @@ var (
 	tracer = otel.Tracer("terraform-backend-gitops")
 )
 
-func NewApp(logger *zap.Logger, config *config.Config) *gin.Engine {
+func NewApp(config *config.Config) *gin.Engine {
 	ctx := context.Background()
 
 	switch config.Server.Mode {
@@ -41,7 +42,7 @@ func NewApp(logger *zap.Logger, config *config.Config) *gin.Engine {
 	router := gin.New()
 
 	if config.Tracing.Enabled {
-		tp, err := initTracer(ctx, logger, config)
+		tp, err := initTracer(ctx, config)
 		if err != nil {
 			logger.Fatal("failed to initialize tracer", zap.Error(err))
 		}
@@ -55,8 +56,8 @@ func NewApp(logger *zap.Logger, config *config.Config) *gin.Engine {
 	}
 
 	// Integrate go-gin with opentelemetry
-	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
-	router.Use(ginzap.RecoveryWithZap(logger, true))
+	router.Use(ginzap.Ginzap(logger.GetZapLogger(), time.RFC3339, true))
+	router.Use(ginzap.RecoveryWithZap(logger.GetZapLogger(), true))
 	router.Use(otelgin.Middleware("terraform-backend-gitops"))
 
 	router.GET("/healthz", func(c *gin.Context) {
@@ -78,12 +79,12 @@ func NewApp(logger *zap.Logger, config *config.Config) *gin.Engine {
 		})
 	})
 
-	routerGroupLocal(logger, config, router)
+	routerGroupV1(config, &router.RouterGroup)
 
 	return router
 }
 
-func initTracer(ctx context.Context, logger *zap.Logger, config *config.Config) (*sdktrace.TracerProvider, error) {
+func initTracer(ctx context.Context, config *config.Config) (*sdktrace.TracerProvider, error) {
 	// local exporter to stdout logs
 
 	var exporter sdktrace.SpanExporter
@@ -108,7 +109,7 @@ func initTracer(ctx context.Context, logger *zap.Logger, config *config.Config) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to create %v exporter: %v, make sure to configure correct tracing.otlp.endpoint", exporter, err)
 		} else {
-			logger.Info("OTLP exporter created", zap.String("endpoint", config.Tracing.OTLP.Endpoint))
+			logger.Info("otlp exporter created", zap.String("endpoint", config.Tracing.OTLP.Endpoint))
 		}
 	default:
 		return nil, fmt.Errorf("unsupported tracing provider: %s", config.Tracing.Provider)

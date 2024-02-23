@@ -1,4 +1,4 @@
-logLevel: "INFO"
+logLevel: "DEBUG"
 repo:
   local:
     path: "/Users/petrukngantuk/go/src/github.com/kholisrag/platypus-tfstate"
@@ -11,3 +11,8 @@ tracing:
   provider: "otlptracegrpc"
   otlp:
     endpoint: "0.0.0.0:4317"
+encryptions:
+  mode: "age"
+  age:
+    recipient: "agexxxx"
+    keys: "$HOME/.sops/age/keys.txt"

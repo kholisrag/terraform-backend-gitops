@@ -1,0 +1,46 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+  pull_request_review:
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-commits-check:
+    name: Check Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Conventional Commits
+        uses: taskmedia/action-conventional-commits@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip_merge: "true"
+          skip_revert: "true"
+          types: "fix|feat|revert|ci|chore|docs|style|refactor|perf|test"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Run GoReleaser Build
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: build --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Go Test
+        uses: robherley/go-test-action@v0.1.0
