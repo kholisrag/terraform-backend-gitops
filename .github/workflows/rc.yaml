@@ -52,6 +52,7 @@ jobs:
           skip-bump: true
           skip-tag: true
           skip-git-pull: true
+          skip-on-empty: false
 
       - name: Conventional Changelog Action
         if: ${{ !env.ACT }}
@@ -67,6 +68,7 @@ jobs:
           pre-release: true
           pre-release-identifier: "${{ github.ref_name }}-rc"
           create-summary: true
+          skip-on-empty: false
 
       - name: Run GoReleaser (act)
         if: ${{ (steps.changelog-local.outputs.clean_changelog != '') && env.ACT }}
