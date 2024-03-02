@@ -7,6 +7,7 @@ type Config struct {
 	Build       Build       `koanf:"build"`
 	Tracing     Tracing     `koanf:"tracing"`
 	Encryptions Encryptions `koanf:"encryptions"`
+	Redis       Redis       `koanf:"redis"`
 }
 
 type Repo struct {
@@ -48,6 +49,10 @@ type Encryptions struct {
 type Age struct {
 	Recipient         string `koanf:"recipient" default:""`
 	AgePrivateKeyPath string `koanf:"keys" default:""`
+}
+
+type Redis struct {
+	Addresses []string `koanf:"addresses"`
 }
 
 func NewDefaultConfig() *Config {

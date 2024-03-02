@@ -1,10 +1,38 @@
 version: "3"
 
 services:
-  otel-collector:
-    image: otel/opentelemetry-collector:0.94.0
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    command: ["--config=/etc/otel-collector-config.yaml"]
+  # terraform-backend-gitops:
+  #   image: kholisrag/terraform-backend-gitops:latest-arm64
+  #   volumes:
+  #     - ./.terraform-backend-gitops.yaml:/opt/terraform-backend-gitops/.terraform-backend-gitops.yaml
+  #   ports:
+  #     - "20002:20002"
+  #   command: ["serve"]
+  #   network_mode: host
+
+  # otel-collector:
+  #   image: otel/opentelemetry-collector:0.95.0
+  #   volumes:
+  #     - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+  #   command: ["--config=/etc/otel-collector-config.yaml"]
+  #   ports:
+  #     - "4317:4317"
+  #   network_mode: host
+
+  redis:
+    image: redis:7
     ports:
-      - "4317:4317"
+      - "6379:6379"
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight:/db
+
+networks:
+  terraform-backend-gitops:
+
+volumes:
+  redisinsight:

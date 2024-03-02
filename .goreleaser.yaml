@@ -61,6 +61,9 @@ dockers:
       - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
       - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
       - "ghcr.io/kholisrag/{{.ProjectName}}:latest-amd64"
+      - "kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
+      - "kholisrag/{{.ProjectName}}:latest-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -78,6 +81,9 @@ dockers:
       - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
       - "ghcr.io/kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
       - "ghcr.io/kholisrag/{{.ProjectName}}:latest-arm64"
+      - "kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
+      - "kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
+      - "kholisrag/{{.ProjectName}}:latest-arm64"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -88,6 +94,18 @@ dockers:
       - "--label=org.opencontainers.image.licenses=AGPLv3"
 
 docker_manifests:
+  - name_template: "kholisrag/{{.ProjectName}}:{{.Version}}"
+    image_templates:
+      - "kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
+  - name_template: "kholisrag/{{.ProjectName}}:{{ .Tag }}"
+    image_templates:
+      - "kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
+      - "kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
+  - name_template: "kholisrag/{{.ProjectName}}:latest"
+    image_templates:
+      - "kholisrag/{{.ProjectName}}:latest-amd64"
+      - "kholisrag/{{.ProjectName}}:latest-arm64"
   - name_template: "ghcr.io/kholisrag/{{.ProjectName}}:{{.Version}}"
     image_templates:
       - "ghcr.io/kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
@@ -115,16 +133,16 @@ changelog:
       regexp: '^(BREAKING CHANGE:|[Ff]eat\!:)\s+(.*)$'
       order: 0
     - title: "Features"
-      regexp: '^.*?(feat|perf)(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?([Ff]eat|[Pp]erf)(\([[:word:]]+\))??!?:.+$'
       order: 1
     - title: "Fixes"
-      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?[Ff]ix(\([[:word:]]+\))??!?:.+$'
       order: 2
     - title: "Refactor"
-      regexp: '^.*?(refactor|revamp)(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?([Rr]efactor|[Rr]evamp)(\([[:word:]]+\))??!?:.+$'
       order: 3
     - title: "Miscellaneous"
-      regexp: '^.*?(chore|docs|ci)(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?([Cc]hore|[Dd]ocs|[Cc]i)(\([[:word:]]+\))??!?:.+$'
       order: 4
 
 checksum:
