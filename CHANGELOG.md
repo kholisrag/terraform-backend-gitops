@@ -1,3 +1,12 @@
+## [0.1.1-main-rc.4](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.3...v0.1.1-main-rc.4) (2024-03-06)
+
+
+### Bug Fixes
+
+* skip goreleaser push to dockerhub ([#6](https://github.com/kholisrag/terraform-backend-gitops/issues/6)) ([60de5f8](https://github.com/kholisrag/terraform-backend-gitops/commit/60de5f8cb7ca5de2384cd25a728bb5280c9a84a0))
+
+
+
 ## [0.1.1-main-rc.3](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.2...v0.1.1-main-rc.3) (2024-03-06)
 
 
