@@ -1,3 +1,12 @@
+## [0.1.1-main-rc.3](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.2...v0.1.1-main-rc.3) (2024-03-06)
+
+
+### Features
+
+* init tf lock (in progress) ([#5](https://github.com/kholisrag/terraform-backend-gitops/issues/5)) ([b52ef21](https://github.com/kholisrag/terraform-backend-gitops/commit/b52ef2177a1680463e2013de9aba88a22e3a62b5))
+
+
+
 ## [0.1.1-main-rc.2](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.1...v0.1.1-main-rc.2) (2024-02-24)
 
 
