@@ -95,14 +95,17 @@ dockers:
 
 docker_manifests:
   - name_template: "kholisrag/{{.ProjectName}}:{{.Version}}"
+    skip_push: true
     image_templates:
       - "kholisrag/{{.ProjectName}}:v{{.Version}}-amd64"
       - "kholisrag/{{.ProjectName}}:v{{.Version}}-arm64"
   - name_template: "kholisrag/{{.ProjectName}}:{{ .Tag }}"
+    skip_push: true
     image_templates:
       - "kholisrag/{{.ProjectName}}:{{.Tag}}-amd64"
       - "kholisrag/{{.ProjectName}}:{{.Tag}}-arm64"
   - name_template: "kholisrag/{{.ProjectName}}:latest"
+    skip_push: true
     image_templates:
       - "kholisrag/{{.ProjectName}}:latest-amd64"
       - "kholisrag/{{.ProjectName}}:latest-arm64"
