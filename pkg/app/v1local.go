@@ -9,8 +9,13 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/config"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/encryptions"
+	"github.com/kholisrag/terraform-backend-gitops/pkg/lock/redis"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/logger"
 	"go.uber.org/zap"
+)
+
+var (
+	Locker *redis.RedisLocker
 )
 
 func routerGroupV1Local(config *config.Config, group *gin.RouterGroup) *gin.RouterGroup {
@@ -21,15 +26,17 @@ func routerGroupV1Local(config *config.Config, group *gin.RouterGroup) *gin.Rout
 			"apiVersion": "v1",
 		})
 	})
-	v1Local.POST("/state", ginApplyHandler(config))
-	v1Local.GET("/state", ginGetHandler(config))
+	v1Local.POST("/state", applyHandler(config))
+	v1Local.GET("/state", getHandler(config))
+	v1Local.Handle("LOCK", "/lock", lockHandler(config))
+	v1Local.Handle("UNLOCK", "/unlock", unlockHandler())
 	return v1Local
 }
 
-func ginApplyHandler(config *config.Config) gin.HandlerFunc {
+func applyHandler(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		relativeStatePath := c.Query("state")
-		logger.Debugf("relativeStatePath: %s", relativeStatePath)
+		logger.Debugf("applyHandler relativeStatePath: %s", relativeStatePath)
 		stateData, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			logger.Error("failed to read request body", zap.Error(err))
@@ -47,8 +54,8 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 
 		statePath := filepath.Join(config.Repo.RepoLocal.Path, relativeStatePath)
 		dirPath := filepath.Dir(statePath)
-		logger.Debugf("statePath: %s", statePath)
-		logger.Debugf("dirPath: %s", dirPath)
+		logger.Debugf("applyHandler statePath: %s", statePath)
+		logger.Debugf("applyHandler dirPath: %s", dirPath)
 
 		err = os.MkdirAll(dirPath, 0750)
 		if err != nil {
@@ -84,7 +91,7 @@ func ginApplyHandler(config *config.Config) gin.HandlerFunc {
 	}
 }
 
-func ginGetHandler(config *config.Config) gin.HandlerFunc {
+func getHandler(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		relativeStatePath := c.Query("state")
 		body, err := io.ReadAll(c.Request.Body)
@@ -95,7 +102,7 @@ func ginGetHandler(config *config.Config) gin.HandlerFunc {
 			c.AbortWithError(400, err)
 		}
 		logger.Debugf("requestbody: %s", body)
-		logger.Debugf("relativeStatePath: %s", relativeStatePath)
+		logger.Debugf("getHandler relativeStatePath: %s", relativeStatePath)
 
 		statePath := filepath.Join(config.Repo.RepoLocal.Path, relativeStatePath)
 		logger.Debugf("statePath: %s", statePath)
@@ -122,5 +129,50 @@ func ginGetHandler(config *config.Config) gin.HandlerFunc {
 				c.JSON(200, stateFile)
 			}
 		}
+	}
+}
+
+func lockHandler(config *config.Config) gin.HandlerFunc {
+	Locker = redis.NewRedisLock(config)
+	return func(c *gin.Context) {
+		relativeStatePath := c.Query("state")
+
+		lock, err := Locker.GetLock(relativeStatePath)
+		if lock == "not_found" {
+			c.AbortWithStatusJSON(200, gin.H{
+				"message": "lock not found",
+				"status":  "not_found",
+				"state":   relativeStatePath,
+			})
+		}
+		if err != nil {
+			logger.Errorf("failed to get lock: %v", err)
+			//nolint:errcheck
+			c.AbortWithError(500, err)
+		}
+		if lock == relativeStatePath {
+			c.AbortWithStatusJSON(500, gin.H{
+				"message": "lock already exists",
+				"status":  "already_exists",
+				"state":   relativeStatePath,
+			})
+		}
+
+		logger.Debug("starting to lock using redsync")
+
+		logger.Debugf("lockHandler relativeStatePath: %s", relativeStatePath)
+		//nolint:errcheck
+		Locker.Lock(relativeStatePath, false)
+	}
+}
+
+func unlockHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		logger.Debug("processing to unlock with redsync")
+
+		relativeStatePath := c.Query("state")
+		logger.Debugf("unlockHandler relativeStatePath: %s", relativeStatePath)
+		//nolint:errcheck
+		Locker.Unlock(relativeStatePath)
 	}
 }

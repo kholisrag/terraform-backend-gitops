@@ -16,3 +16,7 @@ encryptions:
   age:
     recipient: "agexxxx"
     keys: "$HOME/.sops/age/keys.txt"
+
+redis:
+  addresses:
+    - ""
