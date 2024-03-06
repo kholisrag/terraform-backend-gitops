@@ -161,6 +161,7 @@ func lockHandler(config *config.Config) gin.HandlerFunc {
 		logger.Debug("starting to lock using redsync")
 
 		logger.Debugf("lockHandler relativeStatePath: %s", relativeStatePath)
+		//nolint:errcheck
 		Locker.Lock(relativeStatePath, false)
 	}
 }
@@ -171,6 +172,7 @@ func unlockHandler() gin.HandlerFunc {
 
 		relativeStatePath := c.Query("state")
 		logger.Debugf("unlockHandler relativeStatePath: %s", relativeStatePath)
+		//nolint:errcheck
 		Locker.Unlock(relativeStatePath)
 	}
 }
