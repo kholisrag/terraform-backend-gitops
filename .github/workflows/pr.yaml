@@ -48,7 +48,7 @@ jobs:
         uses: robherley/go-test-action@v0.4.1
 
       - name: Run GolangCI-Lint
-        uses: golangci/golangci-lint-action@v5
+        uses: golangci/golangci-lint-action@v6
         with:
           install-mode: binary
           version: latest
