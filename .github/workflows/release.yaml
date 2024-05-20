@@ -95,7 +95,7 @@ jobs:
       - name: Delete Old Release Candidate Release
         if: ${{ steps.goreleaser.outputs.metadata != '' }}
         id: delete-rc-release
-        uses: dev-drprasad/delete-older-releases@v0.3.3
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         with:
           repo: ${{ github.repository }}
           keep_latest: 0
