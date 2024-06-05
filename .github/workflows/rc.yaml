@@ -73,7 +73,7 @@ jobs:
       - name: Run GoReleaser (act)
         if: ${{ (steps.changelog-local.outputs.clean_changelog != '') && env.ACT }}
         id: goreleaser-local
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
@@ -84,7 +84,7 @@ jobs:
       - name: Run GoReleaser
         if: ${{ (steps.changelog.outputs.clean_changelog != '') && !env.ACT }}
         id: goreleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
