@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Go Test
-        uses: robherley/go-test-action@v0.4.1
+        uses: robherley/go-test-action@v0.5.0
 
       - name: Run GolangCI-Lint
         uses: golangci/golangci-lint-action@v6
