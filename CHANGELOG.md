@@ -1,3 +1,7 @@
+## [0.1.1-main-rc.11](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.10...v0.1.1-main-rc.11) (2024-09-07)
+
+
+
 ## [0.1.1-main-rc.10](https://github.com/kholisrag/terraform-backend-gitops/compare/v0.1.1-main-rc.9...v0.1.1-main-rc.10) (2024-06-06)
 
 
