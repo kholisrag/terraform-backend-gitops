@@ -35,7 +35,7 @@ jobs:
       - name: Conventional Changelog Action (act)
         if: ${{ env.ACT }}
         id: changelog-local
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.PAT }}
           release-count: "0"
@@ -54,7 +54,7 @@ jobs:
       - name: Conventional Changelog Action
         if: ${{ !env.ACT }}
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.PAT }}
           release-count: "0"
