@@ -1,7 +1,33 @@
 logLevel: "DEBUG"
 repo:
   local:
-    path: "/Users/petrukngantuk/go/src/github.com/kholisrag/platypus-tfstate"
+    path: "/Users/petrukngantuk/go/src/github.com/kholisrag/labirin-tfstate"
+  github:
+    # Enable automatic GitHub synchronization
+    enabled: false  # Set to true to enable auto-sync
+    # Git remote URL (SSH or HTTPS)
+    remoteUrl: "git@github.com:kholisrag/labirin-tfstate.git"
+    # remoteUrl: "https://github.com/kholisrag/labirin-tfstate.git"  # Alternative: HTTPS
+    # Target branch for commits
+    branch: "main"
+    # Authentication method: ssh, token, or default
+    authMethod: "ssh"
+    # Path to SSH private key (for SSH auth)
+    sshKeyPath: "/Users/petrukngantuk/.ssh/id_ed25519"
+    # GitHub Personal Access Token (for HTTPS auth)
+    # Supports environment variable expansion: ${GITHUB_TOKEN}
+    # token: "${GITHUB_TOKEN}"
+    # Commit message template
+    commitMessage: "chore: update terraform state [automated]"
+    # Automatically push after commit
+    autoPush: true
+    # Commit author information
+    author:
+      name: "Terraform Backend GitOps"
+      email: "terraform-backend@gitops.local"
+    # Retry configuration for failed pushes
+    retryAttempts: 3  # Number of retry attempts
+    retryDelay: 5     # Seconds between retries
 server:
   mode: "release"
   address: "0.0.0.0:20002"
@@ -14,9 +40,7 @@ tracing:
 encryptions:
   mode: "age"
   age:
-    recipient: "agexxxx"
-    keys: "$HOME/.sops/age/keys.txt"
-
-redis:
-  addresses:
-    - ""
+    recipient: |
+      age17nqlfm7qj72hgjfs82vqwcfatqymqngpwvp7v999crs2t5a6tu5sd0vcp9,
+      age1lgmay2ca3aydsltkxjhz2qc6ep4rqdpjneye3lxra0h3a5k37aeqjj2ue4
+    keys: "/Users/petrukngantuk/.config/chezmoi/key.txt"

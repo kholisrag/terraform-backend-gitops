@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"github.com/kholisrag/terraform-backend-gitops/pkg/encryptions"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/lock/redis"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/logger"
+	"github.com/kholisrag/terraform-backend-gitops/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -34,6 +36,18 @@ func routerGroupV1Local(config *config.Config, group *gin.RouterGroup) *gin.Rout
 }
 
 func applyHandler(config *config.Config) gin.HandlerFunc {
+	// Initialize git operations once (not on every request)
+	var gitOps *storage.GitOperations
+	if config.Repo.RepoGithub.Enabled {
+		var err error
+		gitOps, err = storage.NewGitOperations(config, logger.GetZapLogger())
+		if err != nil {
+			logger.Warnf("failed to initialize git operations: %v", err)
+		} else {
+			logger.Info("git operations initialized successfully")
+		}
+	}
+
 	return func(c *gin.Context) {
 		relativeStatePath := c.Query("state")
 		logger.Debugf("applyHandler relativeStatePath: %s", relativeStatePath)
@@ -83,11 +97,40 @@ func applyHandler(config *config.Config) gin.HandlerFunc {
 			c.AbortWithError(500, err)
 		}
 
-		c.JSON(200, gin.H{
-			"message": "applied successfully",
-			"status":  "ok",
-			"state":   relativeStatePath,
-		})
+		// Git commit and push if enabled
+		if config.Repo.RepoGithub.Enabled && gitOps != nil {
+			commitMsg := fmt.Sprintf("%s: %s",
+				config.Repo.RepoGithub.CommitMessage,
+				relativeStatePath)
+
+			logger.Debugf("attempting git commit and push for: %s", relativeStatePath)
+
+			if err := gitOps.CommitAndPush(relativeStatePath, commitMsg); err != nil {
+				logger.Warnf("failed to sync to github: %v", err)
+				c.JSON(200, gin.H{
+					"message": "applied successfully (git sync failed)",
+					"status":  "ok_with_warning",
+					"state":   relativeStatePath,
+					"gitSync": "failed",
+					"error":   err.Error(),
+				})
+				return
+			}
+
+			logger.Infof("successfully synced state to GitHub: %s", relativeStatePath)
+			c.JSON(200, gin.H{
+				"message": "applied successfully",
+				"status":  "ok",
+				"state":   relativeStatePath,
+				"gitSync": "success",
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"message": "applied successfully",
+				"status":  "ok",
+				"state":   relativeStatePath,
+			})
+		}
 	}
 }
 

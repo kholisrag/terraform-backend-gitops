@@ -11,12 +11,32 @@ type Config struct {
 }
 
 type Repo struct {
-	RepoLocal RepoLocal `koanf:"local"`
+	RepoLocal  RepoLocal  `koanf:"local"`
+	RepoGithub RepoGithub `koanf:"github"`
 }
 
 type RepoLocal struct {
 	Path string `koanf:"path"`
 	Root string `koanf:"root,omitempty"`
+}
+
+type RepoGithub struct {
+	Enabled       bool         `koanf:"enabled"`
+	RemoteURL     string       `koanf:"remoteUrl"`
+	Branch        string       `koanf:"branch" default:"main"`
+	AuthMethod    string       `koanf:"authMethod" default:"ssh"`
+	SSHKeyPath    string       `koanf:"sshKeyPath"`
+	Token         string       `koanf:"token"`
+	CommitMessage string       `koanf:"commitMessage" default:"chore: update terraform state [automated]"`
+	AutoPush      bool         `koanf:"autoPush" default:"true"`
+	Author        CommitAuthor `koanf:"author"`
+	RetryAttempts int          `koanf:"retryAttempts" default:"3"`
+	RetryDelay    int          `koanf:"retryDelay" default:"5"`
+}
+
+type CommitAuthor struct {
+	Name  string `koanf:"name" default:"Terraform Backend GitOps"`
+	Email string `koanf:"email" default:"terraform-backend@gitops.local"`
 }
 
 type Build struct {

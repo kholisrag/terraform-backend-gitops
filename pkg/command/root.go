@@ -1,6 +1,8 @@
 package command
 
 import (
+	"os"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/config"
 	"github.com/kholisrag/terraform-backend-gitops/pkg/logger"
@@ -75,4 +77,55 @@ func initConfig() {
 	logger.Infof("repository root: %v", repoRoot.Filesystem.Root())
 	gitStatus, _ := repoRoot.Status()
 	logger.Debugf("git status: %v", gitStatus.String())
+
+	// Validate GitHub sync configuration if enabled
+	if Konfig.Repo.RepoGithub.Enabled {
+		logger.Info("GitHub sync enabled, validating configuration...")
+
+		// Validate remote URL is configured
+		if Konfig.Repo.RepoGithub.RemoteURL == "" {
+			logger.Fatal("GitHub sync enabled but remoteUrl not configured")
+		}
+
+		// Check if remote exists
+		remote, err := repo.Remote("origin")
+		if err == git.ErrRemoteNotFound {
+			logger.Warnf("remote 'origin' not found, will be created on first push")
+		} else if err == nil {
+			// Verify remote URL matches configuration
+			urls := remote.Config().URLs
+			logger.Infof("existing remote 'origin': %v", urls)
+		}
+
+		// Validate authentication configuration
+		switch Konfig.Repo.RepoGithub.AuthMethod {
+		case "ssh":
+			if Konfig.Repo.RepoGithub.SSHKeyPath == "" {
+				logger.Fatal("authMethod is 'ssh' but sshKeyPath not configured")
+			}
+			// Check if SSH key file exists
+			sshKeyPath := os.ExpandEnv(Konfig.Repo.RepoGithub.SSHKeyPath)
+			if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
+				logger.Fatalf("SSH key not found: %s", sshKeyPath)
+			}
+			logger.Infof("SSH key found: %s", sshKeyPath)
+		case "token":
+			token := os.ExpandEnv(Konfig.Repo.RepoGithub.Token)
+			if token == "" {
+				logger.Fatal("authMethod is 'token' but token not configured or empty")
+			}
+			logger.Info("GitHub token configured (not showing value for security)")
+		case "default":
+			logger.Info("using default git credentials from system")
+		default:
+			logger.Warnf("unknown authMethod '%s', will use default", Konfig.Repo.RepoGithub.AuthMethod)
+		}
+
+		logger.Infof("GitHub sync validated: remote=%s, branch=%s, auth=%s",
+			Konfig.Repo.RepoGithub.RemoteURL,
+			Konfig.Repo.RepoGithub.Branch,
+			Konfig.Repo.RepoGithub.AuthMethod)
+	} else {
+		logger.Debug("GitHub sync is disabled")
+	}
 }
