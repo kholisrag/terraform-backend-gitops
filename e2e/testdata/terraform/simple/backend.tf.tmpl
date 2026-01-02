@@ -1,0 +1,9 @@
+terraform {
+  backend "http" {
+    address        = "http://{{ADDRESS}}/v1/local/state?state={{STATE_PATH}}"
+    lock_address   = "http://{{ADDRESS}}/v1/local/lock?state={{STATE_PATH}}"
+    unlock_address = "http://{{ADDRESS}}/v1/local/unlock?state={{STATE_PATH}}"
+    lock_method    = "LOCK"
+    unlock_method  = "UNLOCK"
+  }
+}

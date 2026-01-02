@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  redis-test:
+    image: redis:7-alpine
+    container_name: terraform-backend-redis-test
+    ports:
+      - "6380:6379"  # Use different port to avoid conflicts
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    tmpfs:
+      - /data  # Use tmpfs for faster tests
+
+  # Optional: Redis Commander for debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: terraform-backend-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis-test:6379
+    ports:
+      - "8082:8081"
+    profiles:
+      - debug  # Only start with: docker-compose --profile debug up
+    depends_on:
+      - redis-test
